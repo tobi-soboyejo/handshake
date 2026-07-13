@@ -1,0 +1,133 @@
+/* Interim base styles — the deliberate design pass lands Day 5. */
+
+:root {
+  --bg: #14120f;
+  --surface: #1d1a16;
+  --border: #35302a;
+  --text: #d8d2c7;
+  --text-dim: #8f887b;
+  --accent: #e0b04c;
+  --danger: #d4604f;
+
+  color-scheme: dark;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.wordmark {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.app-header nav {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.app-header nav a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.app-header nav a.active,
+.app-header nav a:hover {
+  color: var(--text);
+}
+
+main {
+  padding-top: 2.5rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.5rem;
+  color: #fff;
+}
+
+.tagline {
+  color: var(--text-dim);
+  max-width: 46ch;
+}
+
+.wip {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  max-width: 46ch;
+}
+
+.registry-stats {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.registry-stats a {
+  color: var(--accent);
+}
+
+.connect-btn {
+  background: var(--accent);
+  color: #14120f;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.connect-btn.connected {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, Menlo, monospace;
+}
+
+.connect-btn.wrong-network {
+  background: var(--danger);
+  color: #fff;
+}
+
+.connect-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.connect-error {
+  display: block;
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+  max-width: 22ch;
+}
