@@ -127,3 +127,22 @@
 - Demo wallets recap: CLIENT2 (bad) 0x506e27e3056df5d75810c753999af2A71F791D5d
   scores 419; CLIENT1 (good) 0x85D1927b2BBf1bB4C1b4D53ad011D83780c9C60b
   scores 777; FREEL2 0x568cBFAF15045Af08946fC65E62f5A6bC2Af64E1.
+
+## 2026-07-14 — Tobi's design/product feedback round (6 items)
+
+1. Landing page added at / (hero, live stat strip, 3 steps, CTAs);
+   New Agreement moved to /new.
+2. Wallet-connect rejection no longer shows an error (closing the popup
+   isn't an error); real failures get a cleaned-up message.
+3. Display type switched Fraunces → Archivo 800/900 (Helvetica-school
+   grotesk; real Helvetica isn't web-licensed). One family + mono now.
+4. Layout centered: headings, taglines, forms as blocks; tables stay
+   left-aligned inside the centered column for readability.
+5. THE BOARD: new page + second contract `HandshakeBoard.sol`
+   (0x11a0969953cEc24cBfF36CCa94B0dBD9Da7e6827, Sourcify-verified, 7 tests).
+   Listings (title/details/rate) live onchain — no backend allowed and
+   hashes can't cross browsers. Killer detail: every listing shows the
+   poster's Handshake Score chip inline (bad client's "Hiring" listing
+   wears its 419). Registry contract untouched — still frozen at v1.1.
+   3 listings seeded with real txs.
+6. Removed the banknote-edge yellow strip.

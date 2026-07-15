@@ -1,9 +1,11 @@
 import { Link, NavLink, Route, Routes } from "react-router-dom";
 import { EXPLORER_URL, HANDSHAKE_ADDRESS } from "./lib/config";
 import { ConnectButton } from "./components/ConnectButton";
+import { Home } from "./screens/Home";
 import { NewAgreement } from "./screens/NewAgreement";
 import { AgreementDetail } from "./screens/AgreementDetail";
 import { Lookup } from "./screens/Lookup";
+import { Board } from "./screens/Board";
 
 export default function App() {
   return (
@@ -16,17 +18,23 @@ export default function App() {
           <span className="header-sub">Monad Testnet · Registry Nº 10143</span>
         </div>
         <nav>
-          <NavLink to="/">New agreement</NavLink>
+          <NavLink to="/" end>
+            Home
+          </NavLink>
+          <NavLink to="/new">New agreement</NavLink>
           <NavLink to="/lookup">Look up a wallet</NavLink>
+          <NavLink to="/board">Board</NavLink>
         </nav>
         <ConnectButton />
       </header>
       <main>
         <Routes>
-          <Route path="/" element={<NewAgreement />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/new" element={<NewAgreement />} />
           <Route path="/agreement/:id" element={<AgreementDetail />} />
           <Route path="/lookup" element={<Lookup />} />
           <Route path="/lookup/:address" element={<Lookup />} />
+          <Route path="/board" element={<Board />} />
         </Routes>
       </main>
       <footer className="app-footer">

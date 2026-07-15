@@ -33,6 +33,11 @@ export function ConnectButton() {
     );
   }
 
+  // Closing the wallet popup isn't an error — stay quiet about it.
+  const rejected =
+    error &&
+    /rejected|denied|cancell?ed/i.test(error.message);
+
   const injectedConnector = connectors[0];
   return (
     <div>
@@ -43,7 +48,14 @@ export function ConnectButton() {
       >
         {isPending ? "Connecting…" : "Connect Wallet"}
       </button>
-      {error && <span className="connect-error">{error.message}</span>}
+      {error && !rejected && (
+        <span className="connect-error">
+          Couldn't connect — {error.message.split("\n")[0].split(".")[0].toLowerCase()}.
+        </span>
+      )}
+      {!injectedConnector && (
+        <span className="connect-error">No wallet extension found.</span>
+      )}
     </div>
   );
 }

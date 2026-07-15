@@ -1,5 +1,5 @@
 // Generated from contracts/out/HandshakeRegistry.sol/HandshakeRegistry.json
-// Regenerate after any contract change: node scripts/gen-abi.cjs
+// Regenerate: node scripts/gen-abi.cjs
 export const handshakeAbi = [
   {
     "type": "function",

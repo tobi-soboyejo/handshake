@@ -1,0 +1,225 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  useAccount,
+  useReadContract,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
+import { monadTestnet } from "wagmi/chains";
+import { boardAbi } from "../lib/abi-board";
+import { BOARD_ADDRESS } from "../lib/config";
+import { formatCad, formatTimestamp } from "../lib/agreements";
+import { computeReputation } from "../lib/reputation";
+import { useAllAgreements } from "../hooks/useAllAgreements";
+import { AddressChip } from "../components/AddressChip";
+
+interface ListingData {
+  poster: `0x${string}`;
+  kind: number; // 0 offering work, 1 hiring
+  title: string;
+  details: string;
+  rateCents: bigint;
+  postedAt: bigint;
+  active: boolean;
+}
+
+function ScoreChip({ wallet }: { wallet: string }) {
+  const { data: all } = useAllAgreements();
+  if (!all) return null;
+  const hs = computeReputation(
+    wallet,
+    all,
+    BigInt(Math.floor(Date.now() / 1000)),
+  ).handshakeScore;
+  const cls = `score-chip band-${hs.band.toLowerCase().replace(" ", "-")}`;
+  return (
+    <Link to={`/lookup/${wallet}`} className={cls} title="Open payment history">
+      {hs.score === null ? "no history" : `⬤ ${hs.score} · ${hs.band}`}
+    </Link>
+  );
+}
+
+export function Board() {
+  const { address, isConnected, chainId } = useAccount();
+  const onMonad = chainId === monadTestnet.id;
+
+  const { data, refetch } = useReadContract({
+    address: BOARD_ADDRESS,
+    abi: boardAbi,
+    functionName: "getListings",
+    args: [0n, 1_000_000n],
+    query: { refetchInterval: 15_000 },
+  });
+  const listings = (data as readonly ListingData[] | undefined) ?? [];
+
+  const [showForm, setShowForm] = useState(false);
+  const [kind, setKind] = useState<0 | 1>(0);
+  const [title, setTitle] = useState("");
+  const [details, setDetails] = useState("");
+  const [rate, setRate] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const { writeContract, data: txHash, isPending, error: writeError } =
+    useWriteContract();
+  const { isLoading: isConfirming, isSuccess: txLanded } =
+    useWaitForTransactionReceipt({ hash: txHash });
+
+  if (txLanded && showForm) {
+    setShowForm(false);
+    setTitle("");
+    setDetails("");
+    setRate("");
+    refetch();
+  }
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    if (!title.trim()) return setFormError("Give the listing a title.");
+    if (new TextEncoder().encode(title).length > 80)
+      return setFormError("Title is over 80 bytes.");
+    if (new TextEncoder().encode(details).length > 400)
+      return setFormError("Details are over 400 bytes — keep it brief, link out for more.");
+    const rateNum = rate.trim() === "" ? 0 : Number(rate);
+    if (!Number.isFinite(rateNum) || rateNum < 0)
+      return setFormError("Rate must be a number (or blank for negotiable).");
+
+    writeContract({
+      address: BOARD_ADDRESS,
+      abi: boardAbi,
+      functionName: "post",
+      args: [kind, title.trim(), details.trim(), BigInt(Math.round(rateNum * 100))],
+    });
+  }
+
+  const visible = listings
+    .map((l, i) => ({ l, id: i }))
+    .filter(({ l }) => l.active)
+    .reverse();
+
+  return (
+    <section>
+      <h1>The board</h1>
+      <p className="tagline">
+        Work offered and work wanted — with the payment history built in.
+        Every poster's wallet links straight to their Handshake Score, so you
+        can check before you ever reach out.
+      </p>
+
+      <div className="hero-ctas">
+        {!showForm && (
+          <button className="connect-btn" onClick={() => setShowForm(true)}>
+            Post a listing
+          </button>
+        )}
+      </div>
+
+      {showForm && (
+        <form className="board-form" onSubmit={submit}>
+          <label>
+            I am…
+            <select
+              value={kind}
+              onChange={(e) => setKind(Number(e.target.value) as 0 | 1)}
+              className="board-select"
+            >
+              <option value={0}>Offering work (freelancer looking for clients)</option>
+              <option value={1}>Hiring (client looking for freelancers)</option>
+            </select>
+          </label>
+          <label>
+            Title
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={kind === 0 ? "Web design — 1-week turnaround" : "Need a logo by Friday"}
+            />
+          </label>
+          <label>
+            Details (optional, max 400 bytes — it goes onchain)
+            <textarea
+              rows={3}
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+            />
+          </label>
+          <label>
+            Rate (CAD, optional)
+            <input
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="blank = negotiable"
+            />
+          </label>
+          {!isConnected && <p className="form-hint">Connect your wallet to post.</p>}
+          {isConnected && !onMonad && (
+            <p className="form-hint">Switch to Monad Testnet to post.</p>
+          )}
+          {formError && <p className="form-error">{formError}</p>}
+          {writeError && (
+            <p className="form-error">{writeError.message.split("\n")[0]}</p>
+          )}
+          <div className="hero-ctas" style={{ margin: 0 }}>
+            <button
+              type="submit"
+              className="connect-btn"
+              disabled={!isConnected || !onMonad || isPending || isConfirming}
+            >
+              {isPending
+                ? "Confirm in wallet…"
+                : isConfirming
+                  ? "Posting onchain…"
+                  : "Post listing"}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setShowForm(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="board-list">
+        {visible.length === 0 && (
+          <p className="field-note" style={{ textAlign: "center", maxWidth: "none" }}>
+            No open listings yet. Post the first one.
+          </p>
+        )}
+        {visible.map(({ l, id }) => (
+          <article className="listing" key={id}>
+            <div className="listing-head">
+              <span className="listing-title">{l.title}</span>
+              <span
+                className={`listing-kind ${l.kind === 0 ? "kind-offering" : "kind-hiring"}`}
+              >
+                {l.kind === 0 ? "Offering work" : "Hiring"}
+              </span>
+            </div>
+            {l.details && <p className="listing-details">{l.details}</p>}
+            <div className="listing-meta">
+              <AddressChip
+                address={l.poster}
+                you={l.poster.toLowerCase() === address?.toLowerCase()}
+              />
+              <ScoreChip wallet={l.poster} />
+              <span>{l.rateCents > 0n ? formatCad(l.rateCents) : "rate negotiable"}</span>
+              <span>{formatTimestamp(l.postedAt)}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <p className="registry-stats">
+        Listings live onchain in a separate contract — the registry itself
+        stays a registry.
+      </p>
+    </section>
+  );
+}

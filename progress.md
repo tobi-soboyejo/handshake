@@ -68,3 +68,7 @@
   leaders, stamp-style score with count-up, Archivo/Spline Sans Mono
   pairing, report banner on lookup. Verified desktop + mobile, no console
   errors.
+- ✅ Feedback round: landing page, Board page + HandshakeBoard contract
+  (verified, 7 tests, 3 seeded listings w/ inline Handshake Score chips),
+  Archivo display type, centered layout, connect-reject error silenced,
+  top strip removed. 32/32 tests. Deployed to production.
